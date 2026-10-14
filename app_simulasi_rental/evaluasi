@@ -1,0 +1,51 @@
+// 1. Mekanisme Session dan Penyimpanan Data
+Data transaksi tidak hilang saat halaman di-refresh karena disimpan menggunakan $_SESSION.
+Session menyimpan data sementara di server sehingga data tetap tersedia selama sesi berlangsung.
+Jika ingin menyimpan data secara permanen, transaksi dapat disimpan ke database MySQL.
+
+// 2. Evaluasi Keamanan Enkapsulasi dan Bypass Validasi
+a. Contoh kode bypass validasi
+PHP
+$transaksi->lamaSewa = -5;
+
+Kode tersebut dapat dilakukan jika properti $lamasewa bersifat public.
+Nilai negatif bisa masuk tanpa melewati validasi pada method setLamaSewa().
+
+b. Dampak buruk terhadap perhitungan keuangan
+Lama sewa negatif menyebabkan perhitungan subtotal dan total bayar menjadi salah.
+Akibatnya, sistem dapat menghasilkan nilai pembayaran yang tidak masuk akal dan merugikan pemilik rental.
+
+Solusi: gunakan private dan ubah nilai melalui method yang memiliki validasi.
+
+// 3. Pemetaan Arsitektur Database dan DDL Design
+a. Perintah SQL membuat tabel tb_renta1
+
+SQL
+CREATE TABLE tb_rental ( id_rental INT AUTO_INCREMENT PRIMARY KEY,
+tanggal_rental DATETIME DEFAULT CURRENT_TIMESTAMP,
+nama_pelanggan VARCHAR(100) NOT
+NULL
+NULL
+jenis_laptop VARCHAR(50) NOT NULL, lama_sewa INT NOT NULL,
+harga_per_hari DECIMAL(10,2) NOT
+subtotal DECIMAL (10, 2) NOT NULL, diskon DECIMAL (10, 2) DEFAULT 0, total_bayar DECIMAL (10, 2) NOT NULL
+);
+
+Tabel tersebut menyimpan identitas transaksi, data penyewa, jenis laptop, lama sewa, harga, subtotal, diskon, dan total pembayaran.
+id_rental menjadi primary key yang bertambah otomatis
+
+b. Properti yang tidak perlu disimpan sebagai kolom terpisah
+Subtotal, diskon, dan total bayar bisa dihitung dari data transaksi.
+Contohnya, subtotal adalah lama sewa dikalikan harga per hari. Menghitung nilai tersebut dapat mengurangi duplikasi data. 
+Namun, nilai akhirnya boleh disimpan untuk mencatat riwayat pembayaran.
+
+// 4. Refactoring dan Prinsip Single Responsibility Principle (SRP)
+a. Mengapa semua logika tidak boleh ditumpuk di index. php?
+Karena kode menjadi panjang, sulit dibaca, dan sulit diperbaiki.
+Jika terjadi kesalahan, pencarian masalah juga lebih sulit.
+Oleh karena itu, logika program sebaiknya dipisahkan berdasarkan tugasnya.
+
+b. Pemisahan tugas Model, Controller, dan View
+1. Model/PBO: mengatur data, validasi, dan perhitungan biaya sewa.
+2. Controller: menerima input, memproses transaksi, dan mengatur penyimpanan data.
+3. View: menampilkan formulir, hasil transaksi, dan tombol cetak struk.
